@@ -1,6 +1,6 @@
 {
   "name": "fancy-cursor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./dist/index.js",
   "module": "./dist/index.module.js",
   "types": "./src/index.d.ts",
