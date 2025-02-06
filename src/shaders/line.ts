@@ -110,10 +110,8 @@ vec3 computeColor(vec2 uv, vec2 lineUvs, float mouseMixer) {
 
     vec3 col = mix(col1, col2, mouseMixer);
 
-
     return col;
 }
-
 
 void main() {
    
@@ -123,7 +121,6 @@ void main() {
 	vec3 col = computeColor(vNDCpos.xy * 0.5 + 0.5, vUv, vFx.y); 
     
     float time = uTime;
-
 
     uv += fbm(vec2(uv * 3.0 + time * 0.25)) * (0.03 + (sin(time) * 0.005 + 0.005) );
     
@@ -154,8 +151,6 @@ void main() {
     // ^ ^ ^ optional, also looks cool
     // ****** linee base - END
 
-    
-
     // linee verticali di intermezzo
     xl += fbm(vec2(uv.x * 10.0, uv.y * 0.5 * 2.0)) * 1.5;
     // ********* v v v opzionale 
@@ -165,10 +160,7 @@ void main() {
     
     // noise generale, per distorcere un po' le linee verticali 
     xl += fbm(vec2(uv.x * 10.0, uv.y * 6.0 * 2.0)) * (0.2 + sin(uv.y + time) * 0.1);
-    
-    
     xl = pow(xl, 2.0);
-    
     
     // this line v v v is replaced by index.js
     float t = 2.5 - pow(vFx.x, 0.5) * 2.7; 
@@ -180,10 +172,8 @@ void main() {
     
     float t1 = t;
 	float t2 = t1 + windowSize;
-    
-    
-    
     float a = 0.0;
+
     if(xl > t1 && xl < t2) {
     	a = (xl - t1) / windowSize;
     } else if (t1 > xl) {
@@ -193,9 +183,6 @@ void main() {
     }
     a = clamp(a, 0.0, 1.0);
     
-
-
-
     // calculate head opacity
     float headOpacity = 1.0;
     if(uvRef.y >= uUVYheadStart) {
@@ -211,13 +198,11 @@ void main() {
         a *= headOpacity;
     }
 
-
     float topOfTheLineFadingLength = 0.07;
     if(uvRef.y >= uCumulativeY - topOfTheLineFadingLength) {
         float nuvy = uvRef.y - (uCumulativeY - topOfTheLineFadingLength);
         a *= 1.0 - smoothstep(0.0, topOfTheLineFadingLength, nuvy);
     }
-
 
     gl_FragColor = vec4(col, a);
 }

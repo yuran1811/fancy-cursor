@@ -1,59 +1,124 @@
-import * as THREE from 'three';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  ClampToEdgeWrapping,
+  Clock,
+  DoubleSide,
+  LinearFilter,
+  Mesh,
+  PerspectiveCamera,
+  PlaneBufferGeometry,
+  Points,
+  Scene,
+  ShaderMaterial,
+  Texture,
+  TextureLoader,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+} from 'three';
+
 import { linef, linev } from './shaders/line';
 import { sparklef, sparklev } from './shaders/sparkle';
-import './styles/style.css';
 
 class FancyCursor {
-  scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera;
-  renderer: THREE.WebGLRenderer;
+  scene: Scene;
+  camera: PerspectiveCamera;
+  renderer: WebGLRenderer;
 
-  currMousePos: THREE.Vector3;
-  lastMousePos: THREE.Vector3;
-  lastTextureDisp: THREE.Vector2;
-  textureDisp: THREE.Vector2;
+  currMousePos: Vector3;
+  lastMousePos: Vector3;
+  textureDisp: Vector2;
+  lastTextureDisp: Vector2;
 
-  lightShafts: any[] = [];
-  linePoints: any[] = [];
-  sparkles: any[] = [];
+  lightShafts: {
+    dir: Vector3;
+    n: Vector3;
+    v: Vector3;
+    opacity: number;
+    lenMult: number;
+    mouseMixer: number;
+  }[] = [];
+  linePoints: {
+    v: Vector3;
+    opacity: number;
+    velocityOpacity: number;
+    uvy?: number;
+    mouseMixer?: number;
+  }[] = [];
+  sparkles: {
+    v: Vector3;
+    opacity: number;
+    mouseMixer: number;
+    vel: Vector3;
+    size: number;
+  }[] = [];
 
-  clock = new THREE.Clock();
-  aspectRatio = innerWidth / innerHeight;
+  // @ts-ignore
+  lineMaterial: ShaderMaterial;
+  // @ts-ignore
+  lightShaftMaterial: ShaderMaterial;
+  // @ts-ignore
+  sparkleMaterial: ShaderMaterial;
+  // @ts-ignore
+  quadClearMaterial: ShaderMaterial;
+
+  clock = new Clock();
+
   mouseDown = false;
+
+  aspectRatio = innerWidth / innerHeight;
+  cumulativeUvy = 0;
   followCumulative = 0;
+  lineExpFactor: number;
+  lineSize: number;
+  maxOpacity: number;
   mouseMixer = 0;
+  opacityDecrement: number;
+  sparklesCount: number;
+  speedExpFactor: number;
   velocityExp = 0;
 
-  lightShaftMaterial: any;
-  lineMaterial: any;
-  quadClearMaterial: any;
-  sparkleMaterial: any;
+  defaultConfig = {
+    lineSize: 0.15,
+    lineExpFactor: 0.6,
+    speedExpFactor: 0.8,
+    opacityDecrement: 0.55,
+    sparklesCount: 65,
+    maxOpacity: 1,
+    texture1: 'https://domenicobrz.github.io/assets/legendary-cursor/t3.jpg',
+    texture2: 'https://domenicobrz.github.io/assets/legendary-cursor/t6_1.jpg',
+    texture3: 'https://domenicobrz.github.io/assets/legendary-cursor/ts.png',
+  };
 
-  cumulativeUvy: any;
-  lineExpFactor: any;
-  lineSize: any;
-  maxOpacity: any;
-  opacityDecrement: any;
-  sparklesCount: any;
-  speedExpFactor: any;
+  constructor(userConfig: {
+    lineSize?: number;
+    lineExpFactor?: number;
+    speedExpFactor?: number;
+    opacityDecrement?: number;
+    sparklesCount?: number;
+    maxOpacity?: number;
+    texture1?: string;
+    texture2?: string;
+    texture3?: string;
+  }) {
+    const args = { ...this.defaultConfig, ...userConfig };
 
-  constructor(args: any) {
-    if (!args) args = {};
-    this.lineExpFactor = args.lineExpFactor || 0.6;
-    this.lineSize = args.lineSize || 0.15;
-    this.maxOpacity = args.maxOpacity || 1;
-    this.opacityDecrement = args.opacityDecrement || 0.55;
-    this.sparklesCount = args.sparklesCount || 65;
-    this.speedExpFactor = args.speedExpFactor || 0.8;
+    this.lineSize = args.lineSize;
+    this.lineExpFactor = args.lineExpFactor;
+    this.speedExpFactor = args.speedExpFactor;
+    this.opacityDecrement = args.opacityDecrement;
+    this.sparklesCount = args.sparklesCount;
+    this.maxOpacity = args.maxOpacity;
 
     this.currMousePos = this.vec3(0, 0, 0);
     this.lastMousePos = this.vec3(0, 0, 0);
-    this.lastTextureDisp = new THREE.Vector2(0, 0);
-    this.textureDisp = new THREE.Vector2(0, 0);
+    this.textureDisp = new Vector2(0, 0);
+    this.lastTextureDisp = new Vector2(0, 0);
 
-    this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(45, this.aspectRatio, 1, 1000);
-    this.renderer = new THREE.WebGLRenderer({
+    this.scene = new Scene();
+    this.camera = new PerspectiveCamera(45, this.aspectRatio, 1, 1000);
+    this.renderer = new WebGLRenderer({
       antialias: true,
       alpha: true,
       premultipliedAlpha: true,
@@ -71,63 +136,34 @@ class FancyCursor {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(this.renderer.domElement);
 
-    let t1: any;
-    let t2: any;
-    let t4: any;
+    let t1: Texture;
+    let t2: Texture;
+    let t4: Texture;
 
-    new THREE.TextureLoader().load(
-      args.texture1 || 'https://domenicobrz.github.io/assets/legendary-cursor/t3.jpg',
-      (texture) => {
-        // setting these values will prevent the texture from being downscaled internally by three.js
-        texture.generateMipmaps = false;
-        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-        texture.minFilter = THREE.LinearFilter;
-        t1 = texture;
-        onDl();
-      }
-    );
-
-    new THREE.TextureLoader().load(
-      args.texture2 || 'https://domenicobrz.github.io/assets/legendary-cursor/t6_1.jpg',
-      (texture) => {
-        texture.generateMipmaps = false;
-        texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-        texture.minFilter = THREE.LinearFilter;
-        t2 = texture;
-        onDl();
-      }
-    );
-
-    new THREE.TextureLoader().load(
-      args.texture3 || 'https://domenicobrz.github.io/assets/legendary-cursor/ts.png',
-      (texture) => {
-        t4 = texture;
-        onDl();
-      }
-    );
-
-    const onDl = () => {
+    const onTextureLoaded = () => {
       if (!t1 || !t2 || !t4) return;
 
       const linef2 = linef.replace(
         'float t = 2.5 - pow(vFx.x, 0.5) * 2.7;',
-        'float t = 2.5 - pow(vFx.x, 0.5) * ' + (2.7 * this.maxOpacity).toFixed(2) + ';'
+        'float t = 2.5 - pow(vFx.x, 0.5) * ' +
+          (2.7 * this.maxOpacity).toFixed(2) +
+          ';'
       );
 
-      this.lineMaterial = new THREE.ShaderMaterial({
+      this.lineMaterial = new ShaderMaterial({
         uniforms: {
           uTime: { value: 0 },
-          uResolution: { value: new THREE.Vector2(innerWidth, innerHeight) },
+          uResolution: { value: new Vector2(innerWidth, innerHeight) },
           uUVYheadStart: { value: 0 },
           uUVYheadLength: { value: 0 },
           uCumulativeY: { value: 0 },
           uTexture1: { type: 't', value: t1 } as any,
           uTexture2: { type: 't', value: t2 } as any,
           uPass: { value: 0 },
-          uMouseTextureDisp: { value: new THREE.Vector2(0, 0) },
+          uMouseTextureDisp: { value: new Vector2(0, 0) },
         },
 
-        side: THREE.DoubleSide,
+        side: DoubleSide,
         transparent: true,
 
         depthTest: false,
@@ -136,15 +172,15 @@ class FancyCursor {
         fragmentShader: linef2,
       });
 
-      this.sparkleMaterial = new THREE.ShaderMaterial({
+      this.sparkleMaterial = new ShaderMaterial({
         uniforms: {
-          uResolution: { value: new THREE.Vector2(innerWidth, innerHeight) },
+          uResolution: { value: new Vector2(innerWidth, innerHeight) },
           uTexture1: { type: 't', value: t1 } as any,
           uTexture2: { type: 't', value: t2 } as any,
           uTexture3: { type: 't', value: t4 } as any,
         },
 
-        side: THREE.DoubleSide,
+        side: DoubleSide,
         transparent: true,
 
         depthTest: false,
@@ -153,15 +189,14 @@ class FancyCursor {
         fragmentShader: sparklef,
       });
 
-      /*
-      this.lightShaftMaterial = new THREE.ShaderMaterial({
+      /* this.lightShaftMaterial = new ShaderMaterial({
         uniforms: {
-          uResolution: { value: new THREE.Vector2(innerWidth, innerHeight) },
+          uResolution: { value: new Vector2(innerWidth, innerHeight) },
           uTexture1: { type: 't', value: t3 } as any,
           uTexture2: { type: 't', value: t2 } as any,
         },
 
-        side: THREE.DoubleSide,
+        side: DoubleSide,
         transparent: false,
 
         depthTest: false,
@@ -170,20 +205,19 @@ class FancyCursor {
         fragmentShader: lightshaftf,
       });
 
-      this.quadClearMaterial = new THREE.ShaderMaterial({
-        side: THREE.DoubleSide,
+      this.quadClearMaterial = new ShaderMaterial({
+        side: DoubleSide,
         transparent: true,
 
-        blending: THREE.CustomBlending,
-        blendDst: THREE.OneMinusSrcAlphaFactor,
-        blendDstAlpha: THREE.ZeroFactor,
-        blendSrc: THREE.ZeroFactor,
-        blendSrcAlpha: THREE.ZeroFactor,
+        blending: CustomBlending,
+        blendDst: OneMinusSrcAlphaFactor,
+        blendDstAlpha: ZeroFactor,
+        blendSrc: ZeroFactor,
+        blendSrcAlpha: ZeroFactor,
 
         vertexShader: quadclearv,
         fragmentShader: quadclearf,
-      });
-      */
+      }); */
 
       window.addEventListener('mousemove', this.onMouseMove);
 
@@ -191,11 +225,33 @@ class FancyCursor {
       this.animate();
     };
 
+    new TextureLoader().load(args.texture1, (texture) => {
+      // setting these values will prevent the texture from being downscaled internally by js
+      texture.generateMipmaps = false;
+      texture.wrapS = texture.wrapT = ClampToEdgeWrapping;
+      texture.minFilter = LinearFilter;
+      t1 = texture;
+      onTextureLoaded();
+    });
+
+    new TextureLoader().load(args.texture2, (texture) => {
+      texture.generateMipmaps = false;
+      texture.wrapS = texture.wrapT = ClampToEdgeWrapping;
+      texture.minFilter = LinearFilter;
+      t2 = texture;
+      onTextureLoaded();
+    });
+
+    new TextureLoader().load(args.texture3, (texture) => {
+      t4 = texture;
+      onTextureLoaded();
+    });
+
     window.addEventListener('mousedown', () => (this.mouseDown = true));
     window.addEventListener('mouseup', () => (this.mouseDown = false));
     window.addEventListener('resize', () => {
       const newRatio = window.innerWidth / window.innerHeight;
-      const newVector2 = new THREE.Vector2(innerWidth, innerHeight);
+      const newVector2 = new Vector2(innerWidth, innerHeight);
 
       this.aspectRatio = this.camera.aspect = newRatio;
       this.lineMaterial.uniforms.uResolution.value =
@@ -213,13 +269,15 @@ class FancyCursor {
     const delta = this.clock.getDelta();
     const time = this.clock.getElapsedTime();
 
-    this.followCumulative = this.followCumulative * 0.92 + this.cumulativeUvy * 0.08;
-    if (isNaN(this.followCumulative)) this.followCumulative = 0;
-    this.followCumulative = Math.min(this.followCumulative, this.cumulativeUvy - 0.1);
+    this.followCumulative = Math.min(
+      this.followCumulative * 0.92 + this.cumulativeUvy * 0.08,
+      this.cumulativeUvy - 0.1
+    );
 
     this.lineMaterial.uniforms.uTime.value = time;
     this.lineMaterial.uniforms.uUVYheadStart.value = this.followCumulative; // cumulativeUvy - 0.1;
-    this.lineMaterial.uniforms.uUVYheadLength.value = this.cumulativeUvy - this.followCumulative; // 0.1;
+    this.lineMaterial.uniforms.uUVYheadLength.value =
+      this.cumulativeUvy - this.followCumulative; // 0.1;
     this.lineMaterial.uniforms.uCumulativeY.value = this.cumulativeUvy; // 0.1;
 
     if (this.mouseDown) {
@@ -250,11 +308,11 @@ class FancyCursor {
 
     const dist = this.lastMousePos.distanceTo(newPos);
 
-    this.velocityExp = this.velocityExp * this.speedExpFactor + dist * (1 - this.speedExpFactor);
+    this.velocityExp =
+      this.velocityExp * this.speedExpFactor + dist * (1 - this.speedExpFactor);
 
     if (dist > minDistBeforeActivation) {
       this.cumulativeUvy += dist; // * ( 7 + Math.sin(this.cumulativeUvy * 5 + time * 3) * 3 );
-      if (isNaN(this.cumulativeUvy)) this.cumulativeUvy = 0;
 
       // prevents the first point from being interpolated with vec3(0,0,0)
       if (!this.linePoints.length) {
@@ -273,12 +331,18 @@ class FancyCursor {
 
       const rs = 5;
       const num = Math.floor((dist + 0.01) * this.sparklesCount);
-      const sparkleBackDir = this.lastMousePos.clone().sub(newPos).normalize().multiplyScalar(0.1);
+      const sparkleBackDir = this.lastMousePos
+        .clone()
+        .sub(newPos)
+        .normalize()
+        .multiplyScalar(0.1);
       for (let i = 0; i < num; i++)
         this.sparkles.push({
           v: newPos
             .clone()
-            .add(this.vec3(Math.random() * 0.2 - 0.1, Math.random() * 0.2 - 0.1, 0))
+            .add(
+              this.vec3(Math.random() * 0.2 - 0.1, Math.random() * 0.2 - 0.1, 0)
+            )
             .add(sparkleBackDir),
           opacity: 0.8 * velocityOpacity,
           mouseMixer: this.mouseMixer,
@@ -326,11 +390,11 @@ class FancyCursor {
     this.constructGeometry();
 
     // lightShaftMaterial.transparent = true;
-    // lightShaftMaterial.blending = THREE.CustomBlending;
-    // lightShaftMaterial.blendSrc = THREE.OneFactor;
-    // lightShaftMaterial.blendDst = THREE.OneFactor;
-    // lightShaftMaterial.blendSrcAlpha = THREE.OneFactor;
-    // lightShaftMaterial.blendDstAlpha = THREE.OneFactor;
+    // lightShaftMaterial.blending = CustomBlending;
+    // lightShaftMaterial.blendSrc = OneFactor;
+    // lightShaftMaterial.blendDst = OneFactor;
+    // lightShaftMaterial.blendSrcAlpha = OneFactor;
+    // lightShaftMaterial.blendDstAlpha = OneFactor;
     // // renderer.render(scene, camera);
 
     // if(scene.getObjectByName("line"))
@@ -394,7 +458,13 @@ class FancyCursor {
     if (this.linePoints.length < 3) return;
 
     const newPoints: any[] = [];
-    const CubicInterpolate = (y0: number, y1: number, y2: number, y3: number, mu: number) => {
+    const CubicInterpolate = (
+      y0: number,
+      y1: number,
+      y2: number,
+      y3: number,
+      mu: number
+    ) => {
       let a0, a1, a2, a3, mu2;
 
       mu2 = mu * mu;
@@ -412,7 +482,11 @@ class FancyCursor {
       v: this.linePoints[0].v
         .clone()
         .add(
-          this.linePoints[1].v.clone().sub(this.linePoints[0].v).normalize().multiplyScalar(-0.02)
+          this.linePoints[1].v
+            .clone()
+            .sub(this.linePoints[0].v)
+            .normalize()
+            .multiplyScalar(-0.02)
         ),
       opacity: this.linePoints[0].opacity,
       velocityOpacity: this.linePoints[0].velocityOpacity,
@@ -465,8 +539,8 @@ class FancyCursor {
           v: this.vec3(x, y, 0),
           opacity: o,
           velocityOpacity: vo1 * (1 - mu) + vo2 * mu,
-          uvy: uvy1 * (1 - mu) + uvy2 * mu,
-          mouseMixer: mm1 * (1 - mu) + mm2 * mu,
+          uvy: (uvy1 || 0) * (1 - mu) + (uvy2 || 0) * mu,
+          mouseMixer: (mm1 || 0) * (1 - mu) + (mm2 || 0) * mu,
         });
       }
     }
@@ -541,10 +615,14 @@ class FancyCursor {
         let v5 = this.vec3(0, 0, 0);
         let v6 = this.vec3(0, 0, 0);
         v5.copy(
-          newPoints[i + 2].v.clone().sub(newPoints[i + 2].n.clone().multiplyScalar(this.lineSize))
+          newPoints[i + 2].v
+            .clone()
+            .sub(newPoints[i + 2].n.clone().multiplyScalar(this.lineSize))
         );
         v6.copy(
-          newPoints[i + 2].v.clone().add(newPoints[i + 2].n.clone().multiplyScalar(this.lineSize))
+          newPoints[i + 2].v
+            .clone()
+            .add(newPoints[i + 2].n.clone().multiplyScalar(this.lineSize))
         );
 
         lineDirv3 = v5.clone().sub(v3);
@@ -567,8 +645,18 @@ class FancyCursor {
       uvs.push(1, uvy2);
       uvs.push(0, uvy2);
 
-      fxs.push(newPoints[i].opacity * newPoints[i].velocityOpacity, mm1, lineDirv1.x, lineDirv1.y);
-      fxs.push(newPoints[i].opacity * newPoints[i].velocityOpacity, mm1, lineDirv2.x, lineDirv2.y);
+      fxs.push(
+        newPoints[i].opacity * newPoints[i].velocityOpacity,
+        mm1,
+        lineDirv1.x,
+        lineDirv1.y
+      );
+      fxs.push(
+        newPoints[i].opacity * newPoints[i].velocityOpacity,
+        mm1,
+        lineDirv2.x,
+        lineDirv2.y
+      );
       fxs.push(
         newPoints[i + 1].opacity * newPoints[i + 1].velocityOpacity,
         mm2,
@@ -576,7 +664,12 @@ class FancyCursor {
         lineDirv3.y
       );
 
-      fxs.push(newPoints[i].opacity * newPoints[i].velocityOpacity, mm1, lineDirv2.x, lineDirv2.y);
+      fxs.push(
+        newPoints[i].opacity * newPoints[i].velocityOpacity,
+        mm1,
+        lineDirv2.x,
+        lineDirv2.y
+      );
       fxs.push(
         newPoints[i + 1].opacity * newPoints[i + 1].velocityOpacity,
         mm2,
@@ -591,11 +684,14 @@ class FancyCursor {
       );
     }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    geometry.addAttribute('fx', new THREE.BufferAttribute(new Float32Array(fxs), 4));
-    geometry.addAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
-    const mesh = new THREE.Mesh(geometry, this.lineMaterial);
+    const geometry = new BufferGeometry();
+    geometry.addAttribute(
+      'position',
+      new BufferAttribute(new Float32Array(vertices), 3)
+    );
+    geometry.addAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
+    geometry.addAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+    const mesh = new Mesh(geometry, this.lineMaterial);
     mesh.name = 'line';
 
     this.scene.add(mesh);
@@ -637,11 +733,14 @@ class FancyCursor {
       fxs.push(opacity, mm, size, 0);
     }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    geometry.addAttribute('fx', new THREE.BufferAttribute(new Float32Array(fxs), 4));
+    const geometry = new BufferGeometry();
+    geometry.addAttribute(
+      'position',
+      new BufferAttribute(new Float32Array(vertices), 3)
+    );
+    geometry.addAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
 
-    const mesh = new THREE.Points(geometry, this.sparkleMaterial);
+    const mesh = new Points(geometry, this.sparkleMaterial);
     mesh.name = 'sparkles';
 
     const prevMesh = this.scene.getObjectByName('sparkles');
@@ -656,7 +755,14 @@ class FancyCursor {
     const fxs = [];
 
     for (let i = 0; i < this.lightShafts.length; i++) {
-      const { dir, mouseMixer: mm, n, v, lenMult, opacity } = this.lightShafts[i];
+      const {
+        dir,
+        mouseMixer: mm,
+        n,
+        v,
+        lenMult,
+        opacity,
+      } = this.lightShafts[i];
       const shaftLength = 0.1 + lenMult * 0.2;
       const shaftSide = 0.05;
 
@@ -696,15 +802,21 @@ class FancyCursor {
       fxs.push(opacity, mm, n.x, n.y);
     }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', new THREE.BufferAttribute(new Float32Array(vertices), 3));
-    geometry.addAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvs), 2));
-    geometry.addAttribute('fx', new THREE.BufferAttribute(new Float32Array(fxs), 4));
+    const geometry = new BufferGeometry();
+    geometry.addAttribute(
+      'position',
+      new BufferAttribute(new Float32Array(vertices), 3)
+    );
+    geometry.addAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+    geometry.addAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
 
-    const mesh = new THREE.Mesh(geometry, this.lightShaftMaterial);
+    const mesh = new Mesh(geometry, this.lightShaftMaterial);
     mesh.name = 'lightShafts';
 
-    const clearMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), this.quadClearMaterial);
+    const clearMesh = new Mesh(
+      new PlaneBufferGeometry(2, 2),
+      this.quadClearMaterial
+    );
     clearMesh.name = 'quadClear';
 
     const prevMesh = this.scene.getObjectByName('lightShafts');
@@ -722,23 +834,10 @@ class FancyCursor {
     const v = this.vec3(x * this.aspectRatio, y, 0);
 
     this.currMousePos = v;
-    this.lastTextureDisp = new THREE.Vector2(x, y);
+    this.lastTextureDisp = new Vector2(x, y);
   };
 
-  vec3 = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+  vec3 = (x: number, y: number, z: number) => new Vector3(x, y, z);
 }
-
-addEventListener('load', () => {
-  console.log(
-    new FancyCursor({
-      lineExpFactor: 0.6,
-      lineSize: 0.15,
-      maxOpacity: 0.99,
-      opacityDecrement: 0.55,
-      sparklesCount: 65,
-      speedExpFactor: 0.8,
-    })
-  );
-});
 
 export default FancyCursor;

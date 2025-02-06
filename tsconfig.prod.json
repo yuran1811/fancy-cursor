@@ -14,7 +14,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+
+    "outDir": "./dist"
   },
-  "include": ["src"]
+  "include": ["node_modules", "src/shaders", "src/index.ts"]
 }

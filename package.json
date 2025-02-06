@@ -1,9 +1,32 @@
 {
   "name": "fancy-cursor",
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "main": "./dist/index.js",
+  "module": "./dist/index.module.js",
+  "types": "./src/index.d.ts",
   "type": "module",
+  "files": [
+    "dist",
+    "public",
+    "README.md"
+  ],
+  "contributors": [
+    "Domenicobrz",
+    "yuran1811"
+  ],
+  "homepage": "https://github.com/yuran1811/fancy-cursor",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuran1811/fancy-cursor.git"
+  },
+  "bugs": "https://github.com/yuran1811/fancy-cursor/issues",
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "start": "vite",
+    "dev": "vite",
+    "bundle": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=esm --outdir=bundle --tree-shaking=true --bundle --minify",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -12,7 +35,7 @@
   },
   "devDependencies": {
     "@types/three": "^0.141.0",
-    "typescript": "^4.6.4",
-    "vite": "^3.0.0"
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
   }
 }

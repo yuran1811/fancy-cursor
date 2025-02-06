@@ -5,9 +5,35 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fancy Cursor</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #eee;
+      }
+
+      * {
+        pointer-events: none;
+        cursor: none;
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+    <script type="module">
+      import FancyCursor from './src';
+
+      addEventListener('load', () => {
+        console.log(
+          new FancyCursor({
+            opacityDecrement: 0.85,
+            sparklesCount: 128,
+          })
+        );
+      });
+    </script>
   </body>
 </html>

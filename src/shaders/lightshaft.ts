@@ -66,7 +66,6 @@ float fbm(vec2 uv) {
 	return f;
 }
 
-
 void main() {
     vec2 uvOffs = vec2(     
         vFx.z,  // fbm(vec2(vFx.z, 0.0)), 

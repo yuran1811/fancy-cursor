@@ -1,30 +1,29 @@
-import * as THREE from 'three';
+import { ShaderChunk } from 'three';
 
-class Utils {
-  onceMemory: {
-    [key: string]: any;
-  } = {};
+const Utils = {
+  onceMemory: {} as Record<string, boolean>,
 
-  smoothstep = (t: number) => t * t * (3 - 2 * t);
+  smoothstep: (t: number) => t * t * (3 - 2 * t),
 
-  once = (tag: string) => {
+  once: function (tag: string) {
     if (!this.onceMemory[tag]) {
       this.onceMemory[tag] = true;
       return true;
     }
 
     return false;
-  };
+  },
 
-  parseIncludes = (pattern: string): string => {
+  parseIncludes: function (pattern: string) {
     const includePattern = /#include <(.*)>/gm;
 
-    const replacer = (pattern: string) => this.parseIncludes(THREE.ShaderChunk[pattern]);
+    const replacer = (pattern: string) =>
+      this.parseIncludes(ShaderChunk[pattern]);
 
     return pattern.replace(includePattern, replacer);
-  };
+  },
 
-  last = (arr: any[]) => arr[arr.length - 1];
-}
+  last: (arr: any[]) => arr[arr.length - 1],
+};
 
 export default Utils;

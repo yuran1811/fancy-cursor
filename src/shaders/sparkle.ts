@@ -33,7 +33,6 @@ uniform sampler2D uTexture2;
 uniform sampler2D uTexture3;
 
 void main() {
-
     vec2 uvOffs = gl_PointCoord * vSize * vec2( vResolution.y / vResolution.x, 1.0);
 
     vec3 col = mix(texture2D(uTexture1, vUv + uvOffs), texture2D(uTexture2, vUv + uvOffs), vFx.y).rgb;
