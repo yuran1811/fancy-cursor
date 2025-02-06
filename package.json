@@ -17,7 +17,7 @@
   "homepage": "https://github.com/yuran1811/fancy-cursor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yuran1811/fancy-cursor.git"
+    "url": "git+https://github.com/yuran1811/fancy-cursor.git"
   },
   "bugs": "https://github.com/yuran1811/fancy-cursor/issues",
   "packageManager": "pnpm@9.15.2",
