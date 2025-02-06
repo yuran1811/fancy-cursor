@@ -1,8 +1,8 @@
 {
   "name": "fancy-cursor",
   "version": "0.1.1",
-  "main": "./dist/index.js",
-  "module": "./dist/index.module.js",
+  "main": "./bundle/cjs/index.js",
+  "module": "./bundle/esm/index.js",
   "types": "./src/index.d.ts",
   "type": "module",
   "files": [
@@ -26,7 +26,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "bundle": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=esm --outdir=bundle --tree-shaking=true --bundle --minify",
+    "bundle:esm": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=esm --outdir=bundle/esm --tree-shaking=true --bundle --minify",
+    "bundle:cjs": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=cjs --outdir=bundle/cjs --tree-shaking=true --bundle --minify",
+    "bundle": "pnpm bundle:esm && pnpm bundle:cjs",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },

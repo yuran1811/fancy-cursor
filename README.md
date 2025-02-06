@@ -30,6 +30,18 @@
 
 ## Quick Start
 
+- Bundle version:
+
+```html
+<script type="module" src="https://cdn.jsdelivr.net/gh/yuran1811/fancy-cursor@main/bundle/esm/index.js"></script>
+```
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/yuran1811/fancy-cursor@main/bundle/cjs/index.js"></script>
+```
+
+## Installation
+
 Follow these steps to set up the project locally on your machine.
 
 **Prerequisites**
