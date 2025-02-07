@@ -1,6 +1,6 @@
 {
   "name": "fancy-cursor",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "main": "./bundle/cjs/index.js",
   "module": "./bundle/esm/index.js",
