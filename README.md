@@ -8,6 +8,9 @@
   <img alt="Forks" src="https://badgen.net/github/forks/yuran1811/fancy-cursor">
   <img alt="Issues" src="https://badgen.net/github/issues/yuran1811/fancy-cursor">
   <img alt="Commits" src="https://badgen.net/github/commits/yuran1811/fancy-cursor">
+</p>
+<p align="center">
+  <img alt="npm" src="https://img.shields.io/npm/v/fancy-cursor">
   <img alt="Code Size" src="https://img.shields.io/github/languages/code-size/yuran1811/fancy-cursor">
 </p>
 
@@ -15,7 +18,7 @@
 
 ## Introduction
 
-- A remake version of [legendary cursor](https://github.com/Domenicobrz/legendary-cursor)
+- A remake version of [legendary cursor](https://github.com/Domenicobrz/legendary-cursor) using `typescript` and lastest version of `three`.
 
 ## Tech Stack
 
