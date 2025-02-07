@@ -5,12 +5,6 @@
   "main": "./bundle/cjs/index.js",
   "module": "./bundle/esm/index.js",
   "types": "./src/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./bundle/esm/index.js",
-      "require": "./bundle/cjs/index.js"
-    }
-  },
   "files": [
     "bundle",
     "public",
@@ -18,7 +12,7 @@
     "README.md"
   ],
   "contributors": [
-    "Domenicobrz",
+    "domenicobrz",
     "yuran1811"
   ],
   "repository": {
