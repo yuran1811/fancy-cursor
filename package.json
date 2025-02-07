@@ -1,13 +1,14 @@
 {
   "name": "fancy-cursor",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "type": "module",
-  "main": "./bundle/cjs/index.js",
-  "module": "./bundle/esm/index.js",
-  "types": "./src/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/esm/index.d.ts",
   "files": [
     "bundle",
-    "public",
+    "dist",
+    "public/screenshots",
     "src",
     "README.md"
   ],
@@ -27,10 +28,12 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "bundle:esm": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=esm --outdir=bundle/esm --tree-shaking=true --bundle --minify",
-    "bundle:cjs": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=cjs --outdir=bundle/cjs --tree-shaking=true --bundle --minify",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build:cjs": "tsc -p tsconfig.build.json",
+    "build": "pnpm build:esm && pnpm build:cjs",
+    "bundle:cm": "esbuild src/shaders/*.ts src/index.ts --bundle --minify --tree-shaking=true",
+    "bundle:esm": "pnpm bundle:cm --format=esm --outdir=bundle/esm --tsconfig=tsconfig.esm.json",
+    "bundle:cjs": "pnpm bundle:cm --format=cjs --outdir=bundle/cjs --tsconfig=tsconfig.build.json",
     "bundle": "pnpm bundle:esm && pnpm bundle:cjs"
   },
   "peerDependencies": {
