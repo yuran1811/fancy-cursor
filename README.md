@@ -31,19 +31,31 @@
 	<img src="./public/screenshots/hold.png" style="width:45%;max-width:380px">
 </div>
 
-## Quick Start
-
-- Bundle version:
-
-```html
-<script type="module" src="https://cdn.jsdelivr.net/gh/yuran1811/fancy-cursor@main/bundle/esm/index.js"></script>
-```
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/yuran1811/fancy-cursor@main/bundle/cjs/index.js"></script>
-```
-
 ## Installation
+
+- **Using package manager**
+
+```bash
+npm i fancy-cursor
+# or
+yarn add fancy-cursor
+# or
+pnpm add fancy-cursor
+```
+
+- **Using CDN**: put the code below inside the `<head></head>` tag, after the styles and replace `<version>` with an actual version (like `0.1.6`)
+
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "fancy-cursor": "https://cdn.jsdelivr.net/npm/fancy-cursor@<version>/bundle/esm/index.js"
+    }
+  }
+</script>
+```
+
+## Developing
 
 Follow these steps to set up the project locally on your machine.
 
