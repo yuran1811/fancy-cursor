@@ -18,5 +18,6 @@
 
     "outDir": "./dist"
   },
-  "include": ["node_modules", "src/shaders", "src/index.ts"]
+  "include": ["src/shaders", "src/index.ts"],
+  "exclude": ["node_modules", "dist", "bundle"]
 }

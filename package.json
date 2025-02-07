@@ -1,24 +1,31 @@
 {
   "name": "fancy-cursor",
   "version": "0.1.2",
+  "type": "module",
   "main": "./bundle/cjs/index.js",
   "module": "./bundle/esm/index.js",
   "types": "./src/index.d.ts",
-  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./bundle/esm/index.js",
+      "require": "./bundle/cjs/index.js"
+    }
+  },
   "files": [
     "bundle",
     "public",
+    "src",
     "README.md"
   ],
   "contributors": [
     "Domenicobrz",
     "yuran1811"
   ],
-  "homepage": "https://github.com/yuran1811/fancy-cursor",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/yuran1811/fancy-cursor.git"
   },
+  "homepage": "https://github.com/yuran1811/fancy-cursor",
   "bugs": "https://github.com/yuran1811/fancy-cursor/issues",
   "packageManager": "pnpm@9.15.2",
   "engines": {
@@ -26,17 +33,19 @@
   },
   "scripts": {
     "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "bundle:esm": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=esm --outdir=bundle/esm --tree-shaking=true --bundle --minify",
     "bundle:cjs": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=cjs --outdir=bundle/cjs --tree-shaking=true --bundle --minify",
     "bundle": "pnpm bundle:esm && pnpm bundle:cjs",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "prepublish": "pnpm bundle",
+    "publish": "npm publish"
   },
-  "dependencies": {
-    "three": "^0.108.0"
+  "peerDependencies": {
+    "@types/three": "^0.173.0",
+    "three": "^0.173.0"
   },
   "devDependencies": {
-    "@types/three": "^0.141.0",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"
   }

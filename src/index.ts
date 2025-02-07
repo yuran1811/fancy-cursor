@@ -7,7 +7,7 @@ import {
   LinearFilter,
   Mesh,
   PerspectiveCamera,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   Points,
   Scene,
   ShaderMaterial,
@@ -685,12 +685,12 @@ class FancyCursor {
     }
 
     const geometry = new BufferGeometry();
-    geometry.addAttribute(
+    geometry.setAttribute(
       'position',
       new BufferAttribute(new Float32Array(vertices), 3)
     );
-    geometry.addAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
-    geometry.addAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+    geometry.setAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
+    geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
     const mesh = new Mesh(geometry, this.lineMaterial);
     mesh.name = 'line';
 
@@ -734,11 +734,11 @@ class FancyCursor {
     }
 
     const geometry = new BufferGeometry();
-    geometry.addAttribute(
+    geometry.setAttribute(
       'position',
       new BufferAttribute(new Float32Array(vertices), 3)
     );
-    geometry.addAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
+    geometry.setAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
 
     const mesh = new Points(geometry, this.sparkleMaterial);
     mesh.name = 'sparkles';
@@ -803,20 +803,17 @@ class FancyCursor {
     }
 
     const geometry = new BufferGeometry();
-    geometry.addAttribute(
+    geometry.setAttribute(
       'position',
       new BufferAttribute(new Float32Array(vertices), 3)
     );
-    geometry.addAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
-    geometry.addAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
+    geometry.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2));
+    geometry.setAttribute('fx', new BufferAttribute(new Float32Array(fxs), 4));
 
     const mesh = new Mesh(geometry, this.lightShaftMaterial);
     mesh.name = 'lightShafts';
 
-    const clearMesh = new Mesh(
-      new PlaneBufferGeometry(2, 2),
-      this.quadClearMaterial
-    );
+    const clearMesh = new Mesh(new PlaneGeometry(2, 2), this.quadClearMaterial);
     clearMesh.name = 'quadClear';
 
     const prevMesh = this.scene.getObjectByName('lightShafts');
