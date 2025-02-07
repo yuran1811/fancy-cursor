@@ -37,9 +37,7 @@
     "preview": "vite preview",
     "bundle:esm": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=esm --outdir=bundle/esm --tree-shaking=true --bundle --minify",
     "bundle:cjs": "esbuild src/shaders/*.ts src/index.ts --tsconfig=tsconfig.prod.json --format=cjs --outdir=bundle/cjs --tree-shaking=true --bundle --minify",
-    "bundle": "pnpm bundle:esm && pnpm bundle:cjs",
-    "prepublish": "pnpm bundle",
-    "publish": "npm publish"
+    "bundle": "pnpm bundle:esm && pnpm bundle:cjs"
   },
   "peerDependencies": {
     "@types/three": "^0.173.0",
