@@ -33,7 +33,9 @@
 
 ## Installation
 
-- **Using package manager**
+### Using package manager
+
+- Install the package
 
 ```bash
 npm i fancy-cursor
@@ -43,7 +45,24 @@ yarn add fancy-cursor
 pnpm add fancy-cursor
 ```
 
-- **Using CDN**: put the code below inside the `<head></head>` tag, after the styles and replace `<version>` with an actual version (like `0.1.6`)
+- Play with it
+
+```js
+import FancyCursor from 'fancy-cursor';
+
+addEventListener('load', () => {
+  console.log(
+    new FancyCursor({
+      opacityDecrement: 0.85,
+      sparklesCount: 128,
+    })
+  );
+});
+```
+
+### Using CDN
+
+- Put the code below inside the `<head></head>` tag, after the styles and replace `<version>` with an actual version (like `0.1.6`)
 
 ```html
 <script type="importmap">
@@ -53,6 +72,57 @@ pnpm add fancy-cursor
     }
   }
 </script>
+```
+
+- Then we can play with it
+
+```html
+<script type="module">
+  import FancyCursor from 'fancy-cursor';
+
+  addEventListener('load', () => {
+    console.log(
+      new FancyCursor({
+        opacityDecrement: 0.85,
+        sparklesCount: 128,
+      })
+    );
+  });
+</script>
+```
+
+- Full example
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fancy Cursor</title>
+    <script type="importmap">
+      {
+        "imports": {
+          "fancy-cursor": "https://cdn.jsdelivr.net/npm/fancy-cursor@0.1.6/bundle/esm/index.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import FancyCursor from 'fancy-cursor';
+
+      addEventListener('load', () => {
+        console.log(
+          new FancyCursor({
+            opacityDecrement: 0.85,
+            sparklesCount: 128,
+          })
+        );
+      });
+    </script>
+  </body>
+</html>
 ```
 
 ## Developing
