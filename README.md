@@ -62,7 +62,7 @@ addEventListener('load', () => {
 
 ### Using CDN
 
-- Put the code below inside the `<head></head>` tag, after the styles and replace `<version>` with an actual version (like `0.1.6`)
+- Put the code below inside the `<head></head>` tag, after the styles and replace `<version>` with an actual version (like `0.1.7`)
 
 ```html
 <script type="importmap">

@@ -262,6 +262,10 @@ class FancyCursor {
     });
   }
 
+  destroy() {
+    document.body.removeChild(this.renderer.domElement);
+  }
+
   animate = () => {
     requestAnimationFrame(this.animate);
 
